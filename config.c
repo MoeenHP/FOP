@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 bool is_global_usermail = false;
-int tmp_usermail = 0;//baraye inke bedanim dafe chandom ast ke user va email vared mikonim;
+//int tmp_usermail = 0;//baraye inke bedanim dafe chandom ast ke user va email vared mikonim;
 
 //int config(char *username, char *email, int argc, char *argv[]);
 
@@ -16,14 +16,13 @@ int config_username(char *username, int argc, char *argv[]) {
     char filepath[1100]; // Increase the buffer size
     if (strcmp(argv[2], "-global") == 0) {
         is_global_usermail = true;
-        strcpy(directory, "C:\\newrealproject"); // Use strcpy to assign value
+        strcpy(directory, "/home/seyyed"); // Use strcpy to assign value
         filename = "global_config.txt";
-        snprintf(filepath, sizeof(filepath), "%s\\%s", directory, filename);
+        snprintf(filepath, sizeof(filepath), "%s/%s", directory, filename);
     }
     else {
         getcwd(directory, sizeof(directory)); // Use getcwd with correct arguments
         filename = "local_config.txt";
-        printf("%s\n", directory);
         snprintf(filepath, sizeof(filepath), "%s/%s", directory, filename);
     }
 
@@ -33,7 +32,6 @@ int config_username(char *username, int argc, char *argv[]) {
         perror("Error creating file config");
         return 1;
     }
-    printf("%s\n", directory);
     // Write data to the file (if needed)
     fprintf(file, "username is : %s\n", username);
 
@@ -50,14 +48,13 @@ int config_email(char *email, int argc, char *argv[]) {
     char filepath[1100]; // Increase the buffer size
     if (strcmp(argv[2], "-global") == 0) {
         is_global_usermail = true;
-        strcpy(directory, "C:\\newrealproject"); // Use strcpy to assign value
+        strcpy(directory, "/home/seyyed"); // Use strcpy to assign value
         filename = "global_config.txt";
-        snprintf(filepath, sizeof(filepath), "%s\\%s", directory, filename);
+        snprintf(filepath, sizeof(filepath), "%s/%s", directory, filename);
     }
     else {
         getcwd(directory, sizeof(directory)); // Use getcwd with correct arguments
         filename = "local_config.txt";
-        printf("%s\n", directory);
         snprintf(filepath, sizeof(filepath), "%s/%s", directory, filename);
     }
 
@@ -67,7 +64,6 @@ int config_email(char *email, int argc, char *argv[]) {
         perror("Error creating file config");
         return 1;
     }
-    printf("%s\n", directory);
     // Write data to the file (if needed)
     fprintf(file, "email is: %s\n", email);
 
