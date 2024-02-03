@@ -31,6 +31,29 @@ int check_existance_repo() {
     return 1;
 }
 
+int exist_in_stage (char *name) {
+    DIR *dir = opendir(".neogit/staging");
+    struct dirent *entry;
+    while((entry = readdir(dir)) != NULL){
+        if(strcmp(name, entry->d_name) == 0) return 0;
+    }
+    return 1;
+}
+void dash_n () {
+    char cwd[200];
+    getcwd(cwd, sizeof(cwd));
+    DIR *dir = opendir(cwd);
+    if(dir == NULL) printf("Error opening current work directory\n");
+    struct dirent *entry;
+    while((entry = readdir(dir)) != NULL){
+        printf("%s: ", entry->d_name);
+        int result = exist_in_stage(entry->d_name);
+        if(result == 0) printf("File is staged\n");
+        else printf("Not staged\n");
+    }
+    closedir(dir);
+}
+
 void copy_system(char *source) {
     char command[100] = "cp -r ";
     strcat(command, source);
@@ -74,7 +97,11 @@ int main(int argc, char *argv[]) {
                     return result;
                 }
             }
-        } else {
+        } else if (strcmp(argv[2], "-n") == 0) {
+            dash_n();
+            return 0;
+        }
+        else {
             int result = run_add(argc, argv, 2);
             if (result != 0) {
                 printf("Failed to add file to staging\n");
