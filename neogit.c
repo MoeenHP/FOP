@@ -29,6 +29,8 @@ int run_reset(int argc, char *const argv[], int arg_to_be_rm);
 int create_commit (int argc, char *argv[]);
 int run_commit(int argc, char *argv[], char *commitInfoFileName);
 int set_shortcut(int argc, char *argv[]);
+int replace_shortcut (int argc, char *argv[]);
+int remove_shortcut (int argc, char *argv[]);
 
 #include <string.h>
 
@@ -457,6 +459,16 @@ int set_shortcut(int argc, char *argv[]) {
         printf("Error opening shortcut.txt");
         return 1;
     }
+    char line[100];
+    while(fgets(line, 100, file)) {
+        char shortcut_name[100];
+        char message[100];
+        sscanf(line, "%s : %s", shortcut_name, message);
+        if(strcmp(argv[5], shortcut_name) == 0) {
+            printf("This shortcut already exists");
+            return 0;
+        }
+    }
     fprintf(file, "%s : %s\n", argv[5], argv[3]);
     return 0;
 }
@@ -480,7 +492,47 @@ int run_shortcut (int argc, char *argv[]) {
         }
     }
     printf("There is no such shortcut\n");
-     return 0;
+    return 0;
+}
+
+int replace_shortcut (int argc, char *argv[]) {
+    FILE *file = fopen(".neogit/commit/shortcut.txt", "r+");
+    char line[100];
+    while(fgets(line, 100, file)) {
+        char shortcut_name[100];
+        char message[100];
+        sscanf(line, "%s : %s", shortcut_name, message);
+        if(strcmp(argv[5], shortcut_name) == 0) {
+            long offset = ftell(file); 
+            fseek(file, offset-strlen(line), SEEK_SET);
+            fprintf(file, "%s : %s\n", shortcut_name, argv[3]);
+            line[strlen(shortcut_name)+ strlen(argv[3])- 1] = '\0';
+            printf("%s\n", line);
+            return 0;
+        }
+    }
+    printf("There is no such shortcut\n");
+    return 0;
+}
+
+int remove_shortcut (int argc, char *argv[]) {
+    FILE *file = fopen(".neogit/commit/shortcut.txt", "r+");
+    char line[100];
+    while(fgets(line, 100, file)) {
+        char shortcut_name[100];
+        char message[100];
+        sscanf(line, "%s : %s", shortcut_name, message);
+        if(strcmp(argv[3], shortcut_name) == 0) {
+            long offset = ftell(file);
+            fseek(file, offset-strlen(line), SEEK_SET);
+            for(int i=0; i<strlen(line); i++) line[i] = ' ';
+            fprintf(file, "%s\n", line);
+            printf("%s\n", line);
+            return 0;
+        }
+    }
+    printf("There is no such shortcut\n");
+    return 0;
 }
 
 int main (int argc, char *argv[]){
@@ -597,8 +649,15 @@ int main (int argc, char *argv[]){
     }
 
     else if (strcmp(argv[1], "set") == 0) {
-        set_shortcut(argc, argv);
+        return set_shortcut(argc, argv);
     }
 
+    else if (strcmp(argv[1], "replace") == 0) {
+        return replace_shortcut(argc, argv);
+    }
+
+    else if (strcmp(argv[1], "remove") == 0) {
+        return remove_shortcut(argc, argv);
+    }
     return 0;
 }
