@@ -28,6 +28,19 @@ int run_add(int argc, char *argv[], int arg_to_be_add);
 int run_reset(int argc, char *const argv[], int arg_to_be_rm);
 int create_commit (int argc, char *argv[]);
 int run_commit(int argc, char *argv[], char *commitInfoFileName);
+int set_shortcut(int argc, char *argv[]);
+
+#include <string.h>
+
+int str_cut(char *str, int begin, int len) {
+    int l = strlen(str);
+    if (len < 0)
+        len = l - begin;
+    if (begin + len > l)
+        len = l - begin;
+    memmove(str + begin, str + begin + len, l - len + 1);
+    return len;
+}
 
 int run_init(int argc, char * const argv[]) {
     char cwd[1024];
@@ -438,6 +451,38 @@ int create_commit(int argc, char *argv[]) {
     return 0;
 } */
 
+int set_shortcut(int argc, char *argv[]) {
+    FILE *file = fopen(".neogit/commit/shortcut.txt", "a+");
+    if(file == NULL){
+        printf("Error opening shortcut.txt");
+        return 1;
+    }
+    fprintf(file, "%s : %s\n", argv[5], argv[3]);
+    return 0;
+}
+
+int run_shortcut (int argc, char *argv[]) {
+    FILE *file = fopen(".neogit/commit/shortcut.txt", "r");
+    if(file == NULL){
+        printf("Error opening shortcut.txt2");
+        return 1;
+    }
+    char line[100];
+    while(fgets(line, 100, file)) {
+        char shortcut_name[100];
+        char message[100];
+        sscanf(line, "%s : %s", shortcut_name, message);
+        str_cut(line, 0, strlen(shortcut_name)+3);
+        line[strcspn(line, "\n")] = '\0';
+        if(strcmp(shortcut_name, argv[3]) == 0) {
+            strcpy(argv[3], line);
+            return create_commit(argc, argv);
+        }
+    }
+    printf("There is no such shortcut\n");
+     return 0;
+}
+
 int main (int argc, char *argv[]){
 
     char username[100]; // Allocate memory for username and email
@@ -542,10 +587,17 @@ int main (int argc, char *argv[]){
         else if (argc == 3) {
             printf("Please enter a messsage for commit\n");
         }
+        else if (strcmp(argv[2], "-s") == 0) {
+            run_shortcut(argc, argv);
+        }
         else {
             return create_commit (argc, argv);
         }
         
+    }
+
+    else if (strcmp(argv[1], "set") == 0) {
+        set_shortcut(argc, argv);
     }
 
     return 0;
