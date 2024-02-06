@@ -28,7 +28,6 @@ int run_add(int argc, char *argv[], int arg_to_be_add);
 int run_reset(int argc, char *const argv[], int arg_to_be_rm);
 int create_commit (int argc, char *argv[]);
 int run_commit(int argc, char *argv[], char *commitInfoFileName);
-int parse_date (char *date_str, struct tm *date);
 
 int run_init(int argc, char * const argv[]) {
     char cwd[1024];
@@ -374,7 +373,6 @@ int create_commit(int argc, char *argv[]) {
     sprintf(file_name, "%d", n);
     char address[200] = ".neogit/commit/";
     strcat(address, file_name);
-    printf("%s\n", address);
     if(mkdir(address, 0755) != 0) {
         printf("Errot creating folder");
         return 1;
@@ -388,12 +386,14 @@ int create_commit(int argc, char *argv[]) {
         strcat(command, " ");
         strcat(command, ".neogit/commit/");
         strcat(command, file_name);
-        printf("%s\n", command);
         system(command);
+    }
+    if(num_of_files_exists_in_staging == 0) {
+        printf("There is no file to commit\n");
+        return 1;
     }
     closedir(dir);
     strcat(file_name, ".txt");
-    printf("%s\n", file_name);
     char address2[200] = ".neogit/commit/";
     strcat(address2, file_name);
     FILE *commit_info = fopen(address2, "w");
@@ -407,14 +407,9 @@ int create_commit(int argc, char *argv[]) {
         fscanf(file, "username: %s", username);
         fclose(file);
     }
-    char date_str[100] = "2022-01-01-00:00:00";
-    struct tm date;
-    parse_date(date_str, &date);
-    if (!parse_date(date_str, &date)) {
-        printf("Error parsing date\n");
-        return 1;
-    }
-    fprintf(commit_info, "commit date and time: %s\n", date_str);
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    fprintf(commit_info, "commit date and time: %d-%02d-%02d %02d:%02d:%02d\n",tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,tm.tm_hour, tm.tm_min, tm.tm_sec);
     fprintf(commit_info, "commit message: %s\n", argv[3]);
     fprintf(commit_info, "user: %s\n", username);
     fprintf(commit_info, "commit id: %d\n", n);
@@ -422,14 +417,13 @@ int create_commit(int argc, char *argv[]) {
     file = fopen("commit_names.txt", "w");
     fprintf(file, "%d", n);
     fclose(file);
-    return run_commit(argc, argv, address2);
+    printf("commit id: %d\n", n);
+    printf("commit date and time: %d-%02d-%02d %02d:%02d:%02d\n",tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,tm.tm_hour, tm.tm_min, tm.tm_sec);
+    printf("commit message: %s\n", argv[3]);
+    return 0;
 }
 
-int parse_date(char *date_str, struct tm *date) {
-    return sscanf(date_str, "%d-%d-%d-%d:%d:%d", &date->tm_year, &date->tm_mon, &date->tm_mday, &date->tm_hour, &date->tm_min, &date->tm_sec) == 6;
-}
-
-int run_commit(int argc, char *argv[], char *commitInfoFileName) {
+/*int run_commit(int argc, char *argv[], char *commitInfoFileName) {
     FILE *file = fopen(commitInfoFileName, "r");
     if (file == NULL) {
         printf("Error opening commitInfo file\n");
@@ -438,11 +432,11 @@ int run_commit(int argc, char *argv[], char *commitInfoFileName) {
     char line[200];
     while (fgets(line, sizeof(line), file)) {
         if (strncmp(line, "number of committed files", 24) == 0) break;
-        printf("%s\n", line);
+        fputs(line, stdout);
     }
     fclose(file);
     return 0;
-}
+} */
 
 int main (int argc, char *argv[]){
 
